@@ -18,7 +18,8 @@ fn main() -> Result<()> {
     let decision_s = fs::read_to_string(&decision_path)?;
     let v: Value = serde_json::from_str(&decision_s)?;
     let canonical = json_canonical(&v)?;
-    let decision_hash = format!("blake3:{}", blake3::hash(canonical.as_bytes()).to_hex());
+    let hash_hex = blake3::hash(canonical.as_bytes()).to_hex();
+    let decision_hash = format!("blake3:{hash_hex}");
 
     let sk_bytes = hex::decode(secret_hex).expect("bad secret hex");
     let sk = SigningKey::from_bytes(&sk_bytes.try_into().unwrap());
@@ -27,14 +28,13 @@ fn main() -> Result<()> {
     let pub_hex = hex::encode(sk.verifying_key().to_bytes());
 
     // PDF
-    let font = genpdf::fonts::dejavu_sans();
+    let font = genpdf::fonts::Builtin::Helvetica;
     let mut doc = genpdf::Document::new(font);
     doc.set_title("ICU SL4 Decision Proof");
     doc.set_minimal_conformance();
     doc.set_line_spacing(1.2);
 
-    let mut heading_style = style::Style::new().bold();
-    heading_style.set_align(genpdf::Alignment::Center);
+    let heading_style = style::Style::new().bold();
     let heading = elements::Paragraph::new("ICU SL4 — Decision Proof").styled(heading_style);
     doc.push(heading);
     doc.push(elements::Break::new(1));
@@ -44,16 +44,13 @@ fn main() -> Result<()> {
         decision_path.display()
     )));
     doc.push(elements::Paragraph::new(format!(
-        "Decision BLAKE3: {}",
-        decision_hash
+        "Decision BLAKE3: {decision_hash}"
     )));
     doc.push(elements::Paragraph::new(format!(
-        "Public Key (Ed25519): {}",
-        pub_hex
+        "Public Key (Ed25519): {pub_hex}"
     )));
     doc.push(elements::Paragraph::new(format!(
-        "Detached Signature (hex): {}",
-        sig_hex
+        "Detached Signature (hex): {sig_hex}"
     )));
     doc.push(elements::Break::new(1));
     doc.push(elements::Paragraph::new("Verification: Verify by recomputing the canonical JSON (sorted keys, minified), re-hashing with BLAKE3, and checking the Ed25519 signature above."));
