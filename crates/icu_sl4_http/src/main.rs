@@ -81,7 +81,9 @@ pub struct DecideReq {
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct VerifyReq {
-    #[schema(example = r#"{"proof_pack": {"input_hash": "...", "sign": {"sig": "...", "pubkey": "..."}}}"#)]
+    #[schema(
+        example = r#"{"proof_pack": {"input_hash": "...", "sign": {"sig": "...", "pubkey": "..."}}}"#
+    )]
     pub decision: serde_json::Value,
 }
 
@@ -417,10 +419,11 @@ async fn verify_ep(body: web::Json<VerifyReq>) -> impl Responder {
     };
 
     let sig = ed25519_dalek::Signature::from_bytes(&sig_bytes.try_into().unwrap_or([0u8; 64]));
-    let vk = match ed25519_dalek::VerifyingKey::from_bytes(&pk_bytes.try_into().unwrap_or([0u8; 32])) {
-        Ok(v) => v,
-        Err(_) => return HttpResponse::BadRequest().body("bad pubkey length"),
-    };
+    let vk =
+        match ed25519_dalek::VerifyingKey::from_bytes(&pk_bytes.try_into().unwrap_or([0u8; 32])) {
+            Ok(v) => v,
+            Err(_) => return HttpResponse::BadRequest().body("bad pubkey length"),
+        };
 
     if let Err(e) = verify_bytes(&vk, canonical.as_bytes(), &sig) {
         return HttpResponse::BadRequest().body(format!("verify failed: {e}"));
@@ -444,7 +447,11 @@ async fn tsa_anchor(body: String) -> impl Responder {
     let now = OffsetDateTime::now_utc()
         .format(&time::format_description::well_known::Rfc3339)
         .unwrap();
-    let token = format!("rfc3161:stub:{}:{}", now, &head.chars().take(16).collect::<String>());
+    let token = format!(
+        "rfc3161:stub:{}:{}",
+        now,
+        &head.chars().take(16).collect::<String>()
+    );
     HttpResponse::Ok().json(TsaAnchorResp { ok: true, token })
 }
 
@@ -510,7 +517,10 @@ async fn main() -> std::io::Result<()> {
         .and_then(|s| s.parse().ok())
         .unwrap_or(8787);
     println!("icu_sl4_http listening on :{}", port);
-    println!("OpenAPI docs available at: http://localhost:{}/swagger-ui/", port);
+    println!(
+        "OpenAPI docs available at: http://localhost:{}/swagger-ui/",
+        port
+    );
 
     HttpServer::new(|| {
         App::new()

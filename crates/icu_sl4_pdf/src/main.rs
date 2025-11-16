@@ -1,16 +1,18 @@
-
 use anyhow::Result;
-use genpdf::{elements, style};
+use ed25519_dalek::{Signer, SigningKey};
 use genpdf::Alignment;
+use genpdf::{elements, style};
+use icu_sl4_engine::json_canonical;
 use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
-use icu_sl4_engine::json_canonical;
-use ed25519_dalek::{SigningKey, Signer};
 
 fn main() -> Result<()> {
     let mut args = std::env::args().skip(1);
-    let decision_path = PathBuf::from(args.next().expect("usage: icu_sl4_pdf <decision.json> <keypair_secret_hex> <out.pdf>"));
+    let decision_path = PathBuf::from(
+        args.next()
+            .expect("usage: icu_sl4_pdf <decision.json> <keypair_secret_hex> <out.pdf>"),
+    );
     let secret_hex = args.next().expect("missing keypair_secret_hex");
     let out_pdf = PathBuf::from(args.next().expect("missing out.pdf"));
 
@@ -37,16 +39,31 @@ fn main() -> Result<()> {
     doc.push(heading);
     doc.push(elements::Break::new(1));
 
-    doc.push(elements::Paragraph::new(format!("Decision file: {}", decision_path.display())));
-    doc.push(elements::Paragraph::new(format!("Decision BLAKE3: {}", decision_hash)));
-    doc.push(elements::Paragraph::new(format!("Public Key (Ed25519): {}", pub_hex)));
-    doc.push(elements::Paragraph::new(format!("Detached Signature (hex): {}", sig_hex)));
+    doc.push(elements::Paragraph::new(format!(
+        "Decision file: {}",
+        decision_path.display()
+    )));
+    doc.push(elements::Paragraph::new(format!(
+        "Decision BLAKE3: {}",
+        decision_hash
+    )));
+    doc.push(elements::Paragraph::new(format!(
+        "Public Key (Ed25519): {}",
+        pub_hex
+    )));
+    doc.push(elements::Paragraph::new(format!(
+        "Detached Signature (hex): {}",
+        sig_hex
+    )));
     doc.push(elements::Break::new(1));
     doc.push(elements::Paragraph::new("Verification: Verify by recomputing the canonical JSON (sorted keys, minified), re-hashing with BLAKE3, and checking the Ed25519 signature above."));
 
-    let snippet:String = canonical.chars().take(1024).collect();
+    let snippet: String = canonical.chars().take(1024).collect();
     doc.push(elements::Break::new(1));
-    doc.push(elements::Paragraph::new("Canonical JSON (first 1024 chars):").styled(style::Style::new().italic()));
+    doc.push(
+        elements::Paragraph::new("Canonical JSON (first 1024 chars):")
+            .styled(style::Style::new().italic()),
+    );
     doc.push(elements::Paragraph::new(snippet));
 
     doc.render_to_file(out_pdf)?;

@@ -1,4 +1,3 @@
-
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use icu_sl4_engine::*;
@@ -8,8 +7,8 @@ use std::path::PathBuf;
 use time::OffsetDateTime;
 
 #[derive(Parser)]
-#[command(name="icu-sl4")]
-#[command(about="Deterministic ICU decision engine (demo)")]
+#[command(name = "icu-sl4")]
+#[command(about = "Deterministic ICU decision engine (demo)")]
 struct Cli {
     #[command(subcommand)]
     cmd: Cmd,
@@ -29,10 +28,10 @@ enum Cmd {
         #[arg(long)]
         keypair: PathBuf,
         /// Binary hash (string to pin build)
-        #[arg(long, default_value="blake3:demo-binary")]
+        #[arg(long, default_value = "blake3:demo-binary")]
         binary_hash: String,
         /// Config hash (string to pin config)
-        #[arg(long, default_value="blake3:demo-config")]
+        #[arg(long, default_value = "blake3:demo-config")]
         config_hash: String,
         /// Output JSON path (decision)
         #[arg(long)]
@@ -51,17 +50,27 @@ enum Cmd {
     GenKey {
         #[arg(long)]
         out: PathBuf,
-    }
+    },
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.cmd {
-        Cmd::Decide { input, policy, keypair, binary_hash, config_hash, out, ledger } => {
+        Cmd::Decide {
+            input,
+            policy,
+            keypair,
+            binary_hash,
+            config_hash,
+            out,
+            ledger,
+        } => {
             let inp: Input = serde_json::from_str(&fs::read_to_string(&input)?)?;
             let pol: Policy = load_policy_yaml(&policy)?;
             let (sk, _vk) = keypair_from_json(&keypair)?;
-            let now = OffsetDateTime::now_utc().format(&time::format_description::well_known::Rfc3339).unwrap();
+            let now = OffsetDateTime::now_utc()
+                .format(&time::format_description::well_known::Rfc3339)
+                .unwrap();
 
             let d = decide(&inp, &pol, &binary_hash, &config_hash, &sk, &now)?;
 
@@ -76,7 +85,10 @@ fn main() -> Result<()> {
             if let Some(ledger_path) = ledger {
                 let h = ledger_append(&ledger_path, &decision_v)?;
                 if let Some(obj) = decision_v.as_object_mut() {
-                    obj.insert("ledger_block_hash".to_string(), serde_json::Value::String(h));
+                    obj.insert(
+                        "ledger_block_hash".to_string(),
+                        serde_json::Value::String(h),
+                    );
                 }
             }
 
@@ -104,7 +116,8 @@ fn main() -> Result<()> {
             let sig_bytes = hex::decode(sig_hex).expect("bad sig hex");
             let pk_bytes = hex::decode(pub_hex).expect("bad pub hex");
             let sig = ed25519_dalek::Signature::from_bytes(&sig_bytes.try_into().unwrap());
-            let vk = ed25519_dalek::VerifyingKey::from_bytes(&pk_bytes.try_into().unwrap()).unwrap();
+            let vk =
+                ed25519_dalek::VerifyingKey::from_bytes(&pk_bytes.try_into().unwrap()).unwrap();
             verify_bytes(&vk, canonical.as_bytes(), &sig)?;
             println!("✓ Signature valid");
         }

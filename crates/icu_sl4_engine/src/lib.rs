@@ -1,4 +1,3 @@
-
 use anyhow::{anyhow, Result};
 use blake3;
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
@@ -316,7 +315,9 @@ pub fn load_policy_yaml(path: &Path) -> Result<Policy> {
 
 pub fn keypair_from_json(path: &Path) -> Result<(SigningKey, VerifyingKey)> {
     #[derive(Deserialize)]
-    struct KeyFile { pub secret_hex: String }
+    struct KeyFile {
+        pub secret_hex: String,
+    }
     let s = fs::read_to_string(path)?;
     let k: KeyFile = serde_json::from_str(&s)?;
     let sk_bytes = hex::decode(k.secret_hex).map_err(|e| anyhow!("hex decode: {}", e))?;
@@ -325,12 +326,17 @@ pub fn keypair_from_json(path: &Path) -> Result<(SigningKey, VerifyingKey)> {
     Ok((sk, vk))
 }
 
-pub fn verifying_key_to_hex(vk: &VerifyingKey) -> String { hex::encode(vk.to_bytes()) }
+pub fn verifying_key_to_hex(vk: &VerifyingKey) -> String {
+    hex::encode(vk.to_bytes())
+}
 
-pub fn sign_bytes(sk: &SigningKey, msg: &[u8]) -> Signature { sk.sign(msg) }
+pub fn sign_bytes(sk: &SigningKey, msg: &[u8]) -> Signature {
+    sk.sign(msg)
+}
 
 pub fn verify_bytes(vk: &VerifyingKey, msg: &[u8], sig: &Signature) -> Result<()> {
-    vk.verify_strict(msg, sig).map_err(|e| anyhow!("verify failed: {}", e))
+    vk.verify_strict(msg, sig)
+        .map_err(|e| anyhow!("verify failed: {}", e))
 }
 
 pub fn make_proof_pack(
@@ -397,15 +403,30 @@ pub fn frontier_for_hypoxemia(input: &Input) -> Vec<FrontierCert> {
     if let Some(spo2) = input.measured.get("spo2_pct").copied() {
         let thr = 90.0;
         let margin = if spo2 < thr { thr - spo2 } else { spo2 - thr };
-        out.push(FrontierCert { feature: "spo2_pct".into(), threshold: 90.0, relation: "<".to_string(), margin_to_flip: margin });
+        out.push(FrontierCert {
+            feature: "spo2_pct".into(),
+            threshold: 90.0,
+            relation: "<".to_string(),
+            margin_to_flip: margin,
+        });
         if spo2 < 85.0 {
-            out.push(FrontierCert { feature: "spo2_pct".into(), threshold: 85.0, relation: "<".to_string(), margin_to_flip: 85.0 - spo2 });
+            out.push(FrontierCert {
+                feature: "spo2_pct".into(),
+                threshold: 85.0,
+                relation: "<".to_string(),
+                margin_to_flip: 85.0 - spo2,
+            });
         }
     }
     if let Some(hr) = input.measured.get("hr_bpm").copied() {
         let thr = 100.0;
         let margin = if hr > thr { hr - thr } else { thr - hr };
-        out.push(FrontierCert { feature: "hr_bpm".into(), threshold: 100.0, relation: ">".to_string(), margin_to_flip: margin });
+        out.push(FrontierCert {
+            feature: "hr_bpm".into(),
+            threshold: 100.0,
+            relation: ">".to_string(),
+            margin_to_flip: margin,
+        });
     }
     out
 }
@@ -439,9 +460,22 @@ pub fn decide(
     let policy_v = serde_json::to_value(policy)?;
     let policy_hash = blake3_hash_json(&policy_v)?;
 
-    let proof = make_proof_pack(input, &a, &policy_hash, binary_hash, config_hash, now_rfc3339, sign_key)?;
+    let proof = make_proof_pack(
+        input,
+        &a,
+        &policy_hash,
+        binary_hash,
+        config_hash,
+        now_rfc3339,
+        sign_key,
+    )?;
     let frontier = frontier_for_hypoxemia(input);
-    Ok(DecideOutput { ast: a, decision, proof_pack: proof, frontier })
+    Ok(DecideOutput {
+        ast: a,
+        decision,
+        proof_pack: proof,
+        frontier,
+    })
 }
 
 // Ledger append-only NDJSON with blockstamp
@@ -453,7 +487,10 @@ pub fn ledger_append<P: AsRef<Path>>(path: P, entry: &serde_json::Value) -> Resu
         "entry": serde_json::from_str::<serde_json::Value>(&s)?
     });
     fs::create_dir_all(path.as_ref().parent().unwrap_or(Path::new(".")))?;
-    let mut f = fs::OpenOptions::new().create(true).append(true).open(&path)?;
+    let mut f = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)?;
     use std::io::Write;
     writeln!(f, "{}", serde_json::to_string(&line_obj)?)?;
     Ok(h)
