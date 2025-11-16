@@ -95,7 +95,8 @@ pub fn json_canonical(obj: &serde_json::Value) -> Result<String> {
 
 pub fn blake3_hash_str(s: &str) -> String {
     let h = blake3::hash(s.as_bytes());
-    format!("blake3:{}", h.to_hex())
+    let hex = h.to_hex();
+    format!("blake3:{hex}")
 }
 
 pub fn blake3_hash_json(obj: &serde_json::Value) -> Result<String> {
