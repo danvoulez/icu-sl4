@@ -184,20 +184,20 @@ fn fhir_observation_to_input(obs: &FhirObservation) -> Input {
                                     // SpO2
                                     measured.insert("spo2_pct".to_string(), v);
                                     if let Some(display) = &coding.display {
-                                        text_parts.push(format!("{}: {}%", display, v));
+                                        text_parts.push(format!("{display}: {v}%"));
                                     }
                                 }
                                 "8867-4" | "http://loinc.org|8867-4" => {
                                     // Heart rate
                                     measured.insert("hr_bpm".to_string(), v);
                                     if let Some(display) = &coding.display {
-                                        text_parts.push(format!("{}: {} bpm", display, v));
+                                        text_parts.push(format!("{display}: {v} bpm"));
                                     }
                                 }
                                 _ => {
                                     // Generic numeric observation
                                     if let Some(display) = &coding.display {
-                                        text_parts.push(format!("{}: {}", display, v));
+                                        text_parts.push(format!("{display}: {v}"));
                                     }
                                 }
                             }
@@ -516,11 +516,8 @@ async fn main() -> std::io::Result<()> {
         .ok()
         .and_then(|s| s.parse().ok())
         .unwrap_or(8787);
-    println!("icu_sl4_http listening on :{}", port);
-    println!(
-        "OpenAPI docs available at: http://localhost:{}/swagger-ui/",
-        port
-    );
+    println!("icu_sl4_http listening on :{port}");
+    println!("OpenAPI docs available at: http://localhost:{port}/swagger-ui/");
 
     HttpServer::new(|| {
         App::new()

@@ -1,7 +1,6 @@
 use anyhow::Result;
 use ed25519_dalek::{Signer, SigningKey};
-use genpdf::Alignment;
-use genpdf::{elements, style};
+use genpdf::{elements, style, Element};
 use icu_sl4_engine::json_canonical;
 use serde_json::Value;
 use std::fs;
@@ -28,14 +27,15 @@ fn main() -> Result<()> {
     let pub_hex = hex::encode(sk.verifying_key().to_bytes());
 
     // PDF
-    let font = genpdf::fonts::FontFamily::default();
+    let font = genpdf::fonts::dejavu_sans();
     let mut doc = genpdf::Document::new(font);
     doc.set_title("ICU SL4 Decision Proof");
     doc.set_minimal_conformance();
     doc.set_line_spacing(1.2);
 
-    let heading = elements::Paragraph::new("ICU SL4 — Decision Proof")
-        .styled(style::Style::new().bold().with_align(Alignment::Center));
+    let mut heading_style = style::Style::new().bold();
+    heading_style.set_align(genpdf::Alignment::Center);
+    let heading = elements::Paragraph::new("ICU SL4 — Decision Proof").styled(heading_style);
     doc.push(heading);
     doc.push(elements::Break::new(1));
 
