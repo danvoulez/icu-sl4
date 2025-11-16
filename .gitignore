@@ -17,6 +17,9 @@ Thumbs.db
 # Build artifacts
 *.tar.gz
 *.zip
+*.rcgu.o
+*.o
+pem-*.o
 
 # Logs
 *.log
