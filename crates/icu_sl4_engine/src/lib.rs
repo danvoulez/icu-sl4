@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use blake3;
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use once_cell::sync::Lazy;
 use regex::Regex;
