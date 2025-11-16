@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use blake3;
-use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
+use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -336,7 +336,7 @@ pub fn sign_bytes(sk: &SigningKey, msg: &[u8]) -> Signature {
 
 pub fn verify_bytes(vk: &VerifyingKey, msg: &[u8], sig: &Signature) -> Result<()> {
     vk.verify_strict(msg, sig)
-        .map_err(|e| anyhow!("verify failed: {}", e))
+        .map_err(|e| anyhow!("verify failed: {e}"))
 }
 
 pub fn make_proof_pack(
