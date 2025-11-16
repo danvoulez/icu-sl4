@@ -231,7 +231,7 @@ fn fhir_observation_to_input(obs: &FhirObservation) -> Input {
                                     }
                                 }
                                 if let Some(display) = &coding.display {
-                                    text_parts.push(format!("{}: {}", display, v));
+                                    text_parts.push(format!("{display}: {v}"));
                                 }
                             }
                         }
