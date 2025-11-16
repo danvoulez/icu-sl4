@@ -24,3 +24,8 @@ Thumbs.db
 # Temporary files
 /tmp/
 *.tmp
+
+# GitHub App credentials
+.env.github_app
+*.pem
+*_private_key.pem
