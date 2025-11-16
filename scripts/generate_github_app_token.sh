@@ -51,11 +51,18 @@ now = int(time.time())
 payload = {
     'iat': now - 60,  # 60 segundos atrás para evitar problemas de clock skew
     'exp': now + (10 * 60),  # Expira em 10 minutos
-    'iss': app_id
+    'iss': int(app_id)  # GitHub espera int, não string
 }
 
-token = jwt.encode(payload, private_key, algorithm='RS256')
-print(token)
+try:
+    token = jwt.encode(payload, private_key, algorithm='RS256')
+    # jwt.encode retorna string em versões mais novas
+    if isinstance(token, bytes):
+        token = token.decode('utf-8')
+    print(token)
+except Exception as e:
+    print(f"Error: {e}", file=sys.stderr)
+    sys.exit(1)
 PYTHON_SCRIPT
 
     # Gerar JWT
