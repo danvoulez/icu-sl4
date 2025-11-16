@@ -1,0 +1,13 @@
+# Builder
+FROM rust:1.79-slim AS builder
+WORKDIR /app
+COPY . .
+RUN cargo build --release -p icu_sl4_cli --locked
+
+# Runtime
+FROM debian:bookworm-slim
+RUN useradd -m -u 10001 app && apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+USER app
+WORKDIR /srv
+COPY --from=builder /app/target/release/icu_sl4_cli /srv/icu_sl4_cli
+ENTRYPOINT ["/srv/icu_sl4_cli"]

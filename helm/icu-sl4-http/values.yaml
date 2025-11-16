@@ -1,0 +1,108 @@
+# Default values for icu-sl4-http
+replicaCount: 1
+
+image:
+  repository: ghcr.io/your-org/icu-sl4-http
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8787
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: icu-sl4.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: icu-sl4-tls
+  #    hosts:
+  #      - icu-sl4.local
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+env:
+  - name: PORT
+    value: "8787"
+  - name: RUST_LOG
+    value: "info"
+
+# Ledger persistence (optional)
+persistence:
+  enabled: false
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+# Network Policy (Kubernetes firewall)
+networkPolicy:
+  enabled: false
+  ingress:
+    # Allow all ingress (disable firewall)
+    allowAll: false
+    # Allow from specific namespaces
+    allowNamespaces: []
+    # Allow from pods with specific labels
+    allowLabels: {}
+    # Allow from specific CIDR blocks
+    allowCIDR: []
+    # Allow from ingress controller namespaces
+    allowIngressController: true
+  egress:
+    enabled: false
+    # Allow all egress
+    allowAll: false
+    # Allow egress to specific CIDR blocks
+    allowCIDR: []
+    # Allow egress to specific namespaces
+    allowNamespaces: []
+

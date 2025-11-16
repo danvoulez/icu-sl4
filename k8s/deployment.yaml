@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: icu-sl4-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: icu-sl4-http
+  template:
+    metadata:
+      labels:
+        app: icu-sl4-http
+    spec:
+      containers:
+        - name: http
+          image: ghcr.io/your-org/icu-sl4-http:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8787
+          env:
+            - name: RUST_LOG
+              value: info
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: icu-sl4-http
+spec:
+  selector:
+    app: icu-sl4-http
+  ports:
+    - port: 80
+      targetPort: 8787
+      protocol: TCP

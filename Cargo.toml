@@ -1,0 +1,8 @@
+[workspace]
+members = [
+  "crates/icu_sl4_engine",
+  "crates/icu_sl4_cli",
+  "crates/icu_sl4_http",
+  "crates/icu_sl4_pdf"
+]
+resolver = "2"

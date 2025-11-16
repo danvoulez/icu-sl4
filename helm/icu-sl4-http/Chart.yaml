@@ -1,0 +1,14 @@
+apiVersion: v2
+name: icu-sl4-http
+description: ICU SL4 HTTP service - Deterministic ICU decision engine
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - icu
+  - healthcare
+  - decision-engine
+  - fhir
+maintainers:
+  - name: ICU SL4 Team
+

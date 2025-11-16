@@ -1,0 +1,101 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "icu-sl4-http.fullname" . }}
+  labels:
+    {{- include "icu-sl4-http.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "icu-sl4-http.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    {{- if .Values.networkPolicy.egress.enabled }}
+    - Egress
+    {{- end }}
+  ingress:
+    {{- if .Values.networkPolicy.ingress.allowAll }}
+    - {}
+    {{- else }}
+    {{- if .Values.networkPolicy.ingress.allowIngressController }}
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.targetPort }}
+    {{- end }}
+    {{- if .Values.networkPolicy.ingress.allowNamespaces }}
+    {{- range .Values.networkPolicy.ingress.allowNamespaces }}
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: {{ . }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.targetPort }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.networkPolicy.ingress.allowLabels }}
+    - from:
+      - podSelector:
+          matchLabels:
+            {{- toYaml .Values.networkPolicy.ingress.allowLabels | nindent 12 }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.targetPort }}
+    {{- end }}
+    {{- if .Values.networkPolicy.ingress.allowCIDR }}
+    {{- range .Values.networkPolicy.ingress.allowCIDR }}
+    - from:
+      - ipBlock:
+          cidr: {{ . }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.targetPort }}
+    {{- end }}
+    {{- end }}
+    {{- if not (or .Values.networkPolicy.ingress.allowNamespaces .Values.networkPolicy.ingress.allowLabels .Values.networkPolicy.ingress.allowCIDR .Values.networkPolicy.ingress.allowIngressController) }}
+    # Default: allow from same namespace
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: {{ .Release.Namespace }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.targetPort }}
+    {{- end }}
+    {{- end }}
+  {{- if .Values.networkPolicy.egress.enabled }}
+  egress:
+    {{- if .Values.networkPolicy.egress.allowAll }}
+    - {}
+    {{- else }}
+    # Allow DNS
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+    {{- if .Values.networkPolicy.egress.allowCIDR }}
+    {{- range .Values.networkPolicy.egress.allowCIDR }}
+    - to:
+      - ipBlock:
+          cidr: {{ . }}
+    {{- end }}
+    {{- end }}
+    {{- if .Values.networkPolicy.egress.allowNamespaces }}
+    {{- range .Values.networkPolicy.egress.allowNamespaces }}
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            name: {{ . }}
+    {{- end }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

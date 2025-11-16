@@ -1,0 +1,7 @@
+{
+  "text": "paciente com satura\u00e7\u00e3o 85%, taquic\u00e1rdico, sudorese",
+  "measured": {
+    "spo2_pct": 85,
+    "hr_bpm": 125
+  }
+}

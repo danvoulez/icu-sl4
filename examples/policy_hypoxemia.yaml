@@ -1,0 +1,18 @@
+protocol_id: hypoxemia_acute
+version: 1.0.0
+jurisdiction: PT
+source: UTI-2024 §3.2
+triggers:
+  - spo2_pct < 90
+  - text matches /hipox[eê]mia/i
+severity: CRITICAL
+actions:
+  - name: call_attending
+    max_delay_s: 30
+  - name: increase_O2_100
+    max_delay_s: 0
+  - name: prepare_intubation_kit
+    max_delay_s: 60
+normative_references:
+  - American Thoracic Society Guidelines (2020)
+  - European Respiratory Society Statement (2019)
