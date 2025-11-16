@@ -320,7 +320,7 @@ pub fn keypair_from_json(path: &Path) -> Result<(SigningKey, VerifyingKey)> {
     }
     let s = fs::read_to_string(path)?;
     let k: KeyFile = serde_json::from_str(&s)?;
-    let sk_bytes = hex::decode(k.secret_hex).map_err(|e| anyhow!("hex decode: {}", e))?;
+    let sk_bytes = hex::decode(k.secret_hex).map_err(|e| anyhow!("hex decode: {e}"))?;
     let sk = SigningKey::from_bytes(&sk_bytes.try_into().map_err(|_| anyhow!("bad key length"))?);
     let vk = sk.verifying_key();
     Ok((sk, vk))
