@@ -29,3 +29,5 @@ Thumbs.db
 .env.github_app
 *.pem
 *_private_key.pem
+.github/*.pem
+agent-minicontratos*.pem
